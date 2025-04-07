@@ -8,7 +8,7 @@ import re
 import io
 
 # Configure Gemini API
-genai.configure(api_key="AIzaSyBbcPmilYx3mvi-bWCCZMkCfFE2BOHMTnY")  
+genai.configure(api_key="AIzaSyA2axORuSmFdgTLR2H7PJFdbLL6CWFu_AM")
 
 # Page setup
 st.set_page_config(
@@ -58,9 +58,10 @@ colored_header("Ask StudyBot Anything", "Get instant answers to your academic qu
 col1, col2 = st.columns([3, 1])
 with col1:
     with stylable_container(key="input", css_styles="{background-color: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);}"):
+
         user_query = st.text_input("Enter your question:", placeholder="e.g. Explain quantum physics in simple terms", key="query_input")
         answer_type = st.radio("Select answer type:", ["Short Summary", "Detailed Explanation"], horizontal=True)
-        submit_button = st.button("Get Answer 🚀", use_container_width=True)
+        submit_button = st.button("Get Answer 🚀") # use_container_width=True
 
 with col2:
     st.markdown("""
@@ -70,23 +71,20 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
 
-# Process question
-if submit_button and user_query:
-    st.session_state.user_query = user_query  # Save user query
-    with st.spinner("🧠 Thinking... Please wait"):
+# Handle submission with input validation
+if submit_button:
+    if not user_query.strip():
+        st.warning("❗ Please enter a question.")
+    elif not re.search(r'[a-zA-Z]', user_query):
+        st.warning("❗ Please enter valid text (not just symbols or Number as a input).")
+    else:
         try:
             model = genai.GenerativeModel("gemini-1.5-flash")
-            query = f"{user_query}. Give a {'brief summary' if answer_type == 'Short Summary' else 'detailed explanation'}."
-            response = model.generate_content(query)
-
-            if response and hasattr(response, 'text'):
-                text = response.text.strip()
-                st.session_state.response_text = text  # Save to session_state
-                st.session_state.history.append((user_query, text))
-            else:
-                st.warning("No response content found.")
+            response = model.generate_content(user_query)
+            st.session_state.response_text = response.text
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.error(f"Error: {e}")
+
 
 # Display question & answer
 if st.session_state.response_text:
@@ -110,7 +108,7 @@ if st.session_state.response_text:
             tts = gTTS(st.session_state.response_text)
             audio_bytes = io.BytesIO()
             tts.write_to_fp(audio_bytes)
-            audio_bytes.seek(0) 
+            audio_bytes.seek(0)
             st.audio(audio_bytes, format="audio/mp3")
         except Exception as e:
             st.error(f"Text-to-speech failed: {e}")
@@ -124,11 +122,10 @@ if st.session_state.response_text:
             pdf.set_font("Arial", size=12)
             for line in st.session_state.response_text.split('\n'):
                 pdf.multi_cell(0, 10, line)
-            pdf_bytes = pdf.output(dest='S').encode('latin1')  # Corrected line
+            pdf_bytes = pdf.output(dest='S').encode('latin1')
             st.download_button("Download PDF", data=pdf_bytes, file_name="studybot_answer.pdf", mime="application/pdf")
         except Exception as e:
             st.error(f"PDF generation failed: {e}")
-
 
 # History
 if st.session_state.history:
@@ -136,4 +133,4 @@ if st.session_state.history:
         for q, a in st.session_state.history[-5:]:
             st.markdown(f"**Q:** {q}")
             st.markdown(f"**A:** {a}")
-            st.markdown("---")
+            st.markdown("---")  
