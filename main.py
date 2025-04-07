@@ -4,7 +4,7 @@ from streamlit_extras.colored_header import colored_header
 from streamlit_extras.stylable_container import stylable_container
 
 # Initialize the Google Gemini client
-genai.configure(api_key="AIzaSyBbcPmilYx3mvi-bWCCZMkCfFE2BOHMTnY")  # Replace with your actual API key
+genai.configure(api_key="AIzaSyBbcPmilYx3mvi-bWCCZMkCfFE2BOHMTnY") 
 
 # Set up the Streamlit app with custom theme
 st.set_page_config(
@@ -175,7 +175,7 @@ if submit_button and user_query:
     with st.spinner("🧠 Thinking... Please wait"):
         try:
             # Create a model instance
-            model = genai.GenerativeModel("gemini-1.5-flash")  # or gemini-pro
+            model = genai.GenerativeModel("gemini-1.5-flash")  
 
             # Generate content from the model
             response = model.generate_content(user_query)
